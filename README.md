@@ -43,6 +43,8 @@ int __cdecl main(int argc, const char **argv, const char **envp)
 Если все три равенства выполняются (т.е. `v4 == 3`), программа выводит "YES", иначе "NO"
 когда мы подбираем пароль, чтобы XOR двух соседних четверок дал нужное число, надо сначала посчитать, а потом уже перевернуть каждую четверку.
 
+есть начальная строка qw3r, она подразделяется на четверки, их шесть, все эти четверки отзеркалены, каждые 4 символа отзеркалены. Я просто на рандом вводил 4 символа. Первая четверка, я ее на рандом ввожу, ксорю ее, 44, 48 и так далее. Получаю вторую четверку, потом ввожу третью рандомную четверку, ксорю ее 17 и так далее, получаю четвертую четверку. И с последней четверкой делаю то же самое
+
 ## bin3.exe
 
 <img width="921" height="325" alt="Снимок экрана 2025-12-19 185745" src="https://github.com/user-attachments/assets/f3bfb87d-a351-476e-8105-f44a7f3daaeb" />
@@ -497,6 +499,51 @@ int __cdecl main(int argc, const char **argv, const char **envp)
 Итоговый формат зашифрованных данных: каждый символ хранится вместе с соответствующим случайным числом в формате:
 2 шестнадцатеричные цифры зашифрованного символа
 2 шестнадцатеричные цифры случайного числа
+
+
+```c
+def decode_secret_message(encoded_hex_string):
+
+    message_bytes = []
+    shift_control_values = []
+
+    for i in range(0, len(encoded_hex_string), 4):
+        data_hex = encoded_hex_string[i: i + 2]
+        message_bytes.append(int(data_hex, 16))
+
+        control_hex = encoded_hex_string[i + 2: i + 4]
+        shift_control_values.append(int(control_hex, 16))
+
+    processed_shift_amounts = [val % 8 for val in shift_control_values]
+
+    final_decrypted_bytes = []
+    for i in range(len(message_bytes)):
+        current_byte = message_bytes[i]
+        shift_amount = processed_shift_amounts[i]
+
+        inverted_byte = current_byte ^ 0xFF
+
+        byte_after_rotation = inverted_byte
+        for i in range(shift_amount):
+            # Сохраняем младший бит
+            least_significant_bit = byte_after_rotation & 1
+            # Сдвигаем все биты вправо на 1 позицию
+            byte_after_rotation >>= 1
+            # Перемещаем сохраненный младший бит в старшую позицию
+            byte_after_rotation |= (least_significant_bit << 7)
+
+        final_decrypted_bytes.append(byte_after_rotation)
+
+    result_string = ''.join(chr(b) for b in final_decrypted_bytes)
+
+    return result_string
+
+
+encrypted_data = 'e93cd8f4e4738b3099bc907d3fda46365ee91c5dccb33492391a71e62363be2f8756cacdc243392233a1f1a8ce4ca77565af48b33596efa466ae9d48c5b98a4e99c94e8565a49342b89dc93e94423eeb22d496c33a9d8353e33b905331ebc5c3e73dc64e3df33ba2fba67b7c7b88cfc05c9'
+
+decoded_message = decode_secret_message(encrypted_data)
+print(decoded_message)
+```
 с помощью кода написанного на питоне, сделал расшифровку и получил `arctf{akjsdfnav18923787jjafdnanvakjkjdasjkf9823482834187}`
 
 ## bin13.exe
@@ -698,3 +745,4 @@ int __cdecl main(int argc, const char **argv, const char **envp)
 Для успешного прохождения всех проверок необходимо ввести строку, содержащую те же символы, что и FLAG{123FLAGREAL!!!}, но с перестановкой блоков по четыре символа. Примером такой строки является FLAG{123FLAG!!!}REAL.
 
 флаг - FLAG{THIS_IS_MY_KEY}
+
